@@ -1,0 +1,103 @@
+#GOAL: Can we predict anxiety from GPA, gender, marital status, year, and age?
+
+####------------------------- Data Cleaning -------------------------####
+rm(list = ls())
+SMH=read.csv(file.choose(),header=T, sep=",",stringsAsFactors=TRUE)
+names(SMH)[2] <- "Gender" # RENAMING VARIABLES
+names(SMH)[5] <- "Year"
+names(SMH)[6] <- "GPA"
+names(SMH)[9] <- "Anxiety"
+str(SMH)
+Gender<-ifelse(SMH$Gender=="Female", 1,0) #Gender
+Marital.status<-ifelse(SMH$Marital.status=="Yes", 1,0) #Marital status
+str(SMH) #has 41 different majors, out of 101 responses. 
+new.SMH <-SMH[-c(1,4,8,10,11)]
+#deleted cols timestamp,course, and treatment because they're not relevant
+new.SMH2<-new.SMH[-c(44),] 
+#deleted row 44 due to a missing value. 
+names(new.SMH2)
+
+############### ------ Classification Tree ---------- ###################
+#predict Anxiety
+library(tree)
+Anxiety <- (new.SMH2$Anxiety) 
+
+set.seed(1)
+train=sample(nrow(new.SMH2),nrow(new.SMH2)*0.8)
+tree.model=tree(Anxiety~.,new.SMH2,subset=train) 
+new.SMH2.test=new.SMH2[-train,]
+Anxiety.test=Anxiety[-train]
+cv.model=cv.tree(tree.model,K=10,FUN=prune.misclass)
+cv.model
+
+prune.model=prune.tree(tree.model,best=5)
+plot(prune.model)
+text(prune.model,pretty=0) #made tree
+
+prunetree.pred=predict(prune.model,(new.SMH2.test),type="class") 
+table(prunetree.pred,as.factor(Anxiety.test)) #confusion matrix
+mean(prunetree.pred==Anxiety.test) #Prediction accuracy
+#0.7
+
+####### ----------------- Logistic Regression ------------------------ ##########
+A<- ifelse(new.SMH2$Anxiety=="Yes", 1,0) #converted "Yes" to 1, and "No" as 0
+table(A)
+glm.fit2=glm(A~Age+Marital.status+Gender+Year+GPA,family="binomial",data=new.SMH2)
+summary(glm.fit2) #AIC used to compare fit of regression models. LOW AIC = BEST FIT
+#AIC: the AIC is 140, which is a large number.Therefore, because the value is so high
+#the model doesn't fit the data well. 
+#all of the p-values are greater than 0.05, so the predictors aren't statistically significant. 
+#However, we can see that marital status, age, and gender Male have lower p-values than
+#the other predictors.
+exp(coef(glm.fit2)) #odds ratio of coefficients. 
+#Odds ratio tells us that after accounting for all other variables, when Anxiety increases by a point,
+#the odds of Age increases by a factor of 9.25, for example. 
+
+#not significant with any predictors, even individual predictors. 
+#NOTE: use 5-fold cross validation using logistic regression, and determine prediction accuracy. 
+#Compare that with tree. 
+
+###### ------------------- KNN Model ---------------------- ######
+library(class)
+Age <- new.SMH2$Age
+standardize.Age=scale(Age)
+
+Gender <-new.SMH2$Gender
+Gender2<-as.numeric(Gender)
+standardize.Gender2=scale(Gender2)
+
+Year <- new.SMH2$Year
+standardize.Year=scale(Year)
+
+GPA <- new.SMH2$GPA
+GPA2<-as.numeric(GPA)
+standardize.GPA2=scale(GPA2)
+
+Input.standard=cbind(standardize.Age,standardize.Gender2,standardize.Year,standardize.GPA2,A)
+accuracy=matrix(0,10,5)
+
+set.seed(2)
+folds=sample(1:5,nrow(Input.standard),replace=TRUE)
+for (j in 1:10)
+{
+  for(i in 1:5)
+  {
+    train.standard=Input.standard[folds!=i,]
+    test.standard=Input.standard[folds==i,]
+    train.truevalue=A[folds!=i]
+    test.truevalue=A[folds==i]
+    knn.pred=knn(train.standard,test.standard,train.truevalue,k=j) #prob
+    accuracy[j,i]=mean(knn.pred==test.truevalue)
+  }
+} 
+cv.accuracy=apply(accuracy,1,mean) 
+mean(cv.accuracy) #accuracy for different KNN models. 
+cv.accuracy
+# 0.8889651 0.8397821 0.8651743 0.8288671 0.7976688 
+#0.8094336 0.7684967 0.7671133 0.7252505 0.7252505
+#Mean is 0.80
+#KNN with 1NN performs the best. 
+#What does the prediction accuracy tell us? We can accurately predict anxiety
+#from these 5 variables correctly, 88.8% of the time. 
+
+
