@@ -1,0 +1,57 @@
+#####-------------------- Part 1 ----------------------#####
+Assignment1=read.csv(file.choose(),header=T, stringsAsFactors=TRUE)
+hist(Assignment1$Units, col="green", main="Histogram of Units", xlab="Units")
+#This univariate histogram is slightly skewed to the right, therefore, it’s a nearly normal distribution. Units 10-20 has the highest frequency, 
+#while the ends of the 2 tails (Units 30 to 40, and Units 0 to 5) have the lowest frequency. 
+
+names(Assignment1)
+plot(Region, Units, col="turquoise", xlab="Region", ylab="Unit", main="Unit vs. Region")
+plot(Assignment1$Hours, Assignment1$Units, xlab="Hours", ylab="Units", main="Hours vs. Units", col="blue" )
+#For the boxplot, there’s little to no relationship between Units and Region because there's no significant difference between North and South, due to the lack of significant differences in each boxplot. 
+#The minimum score for North and South is about 0 and -3, respectively, which are similar range in values. The interquartile range of North is higher than the South, and their medians are relatively similar to each other with 
+#a value of 18 units in the North, and 15 units in the South. Finally, the maximum value for each Region is also very close to each other: North is around 40 units, and South is around 39 units. Both of the boxplots seems to have a normal distribution. 
+#Overall, the boxplots between the North and South are very similar in size, range, and values, so there is no significant difference between the 2 regions. 
+#For the scatterplot, there is a moderately positive relationship. There are lots of scatter but it's accumulated around the positive linear line. Thus, there is a moderately positive correlation between Hours and Units. 
+
+
+#####------------------Part 2 ---------------------#####
+#Use the lm() function to fit M1 with all data. Which predictors appear to have a statistically significant relationship to the response (Units)? 
+#How does each predictor affect the response? 
+
+Model1=lm(Units~Hours+Lines+Workers+Region,data= Assignment1)
+ summary(Model1)
+Model2 = lm(Units~Hours+Lines+Workers+Region+Region*Workers, data= Assignment1) 
+Model2
+plot(predict(Model2), residuals(Model2)) 
+plot(predict(Model2), rstudent(Model2))
+#The predictor that seems to have a statistically significant relationship to the units would be the South Region at -2.21823 in comparison to the intercept which is -5.31524. 
+#The predictors Hours, Lines, and Workers, and South Region all have a statistically significant relationship to Units, because their p-values are less than 0.05. 
+
+
+#####------------------Part 3 ---------------------#####
+#Compute the ten-fold cross-validation error (MSE) associated with each model. Which model is a better one?
+
+#M1 has a higher MSE value of 409.5719, compared to M2, which is 404.1218. Therefore, M2 would be the better model in cross validation because the 
+#mean squared error is smaller; the smaller the MSE value, the better the model. 
+
+set.seed(1)
+k=10
+M1CVMSE=rep(0,k)
+M2CVMSE=rep(0,k)
+folds=sample(1:k,nrow(Assignment1), replace=TRUE)
+for(j in 1:k)
+{
+  M1CV=lm(Units~Hours+Lines+Workers+Region,data=Assignment1[folds!=j,])
+  M1CVMSE [j]=mean((Units=predict(M1CV,Assignment1))[folds==j]^2)
+}
+for(j in 1:k)
+{
+  M2CV=lm(Units~Hours+Workers*Region,data=Assignment1[folds!=j,])
+  M2CVMSE [j]=mean((Units=predict(M1CV,Assignment1))[folds==j]^2)
+}
+MeanM1MSE=mean(M1CVMSE) 
+MeanM2MSE=mean(M2CVMSE) 
+MeanM1MSE
+#The mean is 409.8106
+MeanM2MSE
+#The mean is 404.1218
