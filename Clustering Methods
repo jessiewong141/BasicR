@@ -1,0 +1,97 @@
+
+1a:
+USArrests <-read.csv(file.choose(),header=T,stringsAsFactors=TRUE)
+names(USArrests) #5 variables
+dim(USArrests) #50  4
+head(USArrests)
+summary(USArrests) 
+
+#######--------------------------------------------------------------
+#a) Using hierarchical clustering with average linkage and Euclidean distance, cluster the states. 
+#Cut the dendrogram to obtain four clusters. Write down the names of states in each cluster.
+
+USArrests.labs=USArrests[,1] #states
+USArrests.labs
+USArrests.data=USArrests[,2:5] #murder, assault, urban pop, rape
+USArrests.data
+dim(USArrests.data) #50  4
+table(USArrests.labs)
+
+USArrests.data2=USArrests[,2:5]
+data.dist2=dist(USArrests.data2)
+newhc2=hclust(data.dist2, method="average") #average linkage
+
+newhc.clusters2=cutree(newhc2,4) #cut 4
+table(newhc.clusters1,USArrests.labs)
+table(newhc.clusters2,USArrests.labs)
+
+par(mfrow=c(1,1))
+plot(newhc2, labels=USArrests.labs)
+abline(h=70, col="hot pink")
+newhc2 
+table(newhc.clusters2,labels=USArrests.labs)
+
+ANSWER
+Cluster 1: Alabama, Alaska, Arizona, California, Delaware, Illinois, Louisiana, Maryland, Michigan, Mississippi, Missouri, Nevada, New Mexico, New York, South Carolina.
+Cluster 2: Arkansas, Colorado, Georgia, Massachusetts, Missouri, New Jersey, Oklahoma, Oregon, Rhode Island, Tennessee, Texas, Virginia, Washington, Wyoming.
+Cluster 3: Connecticut, Hawaii, Idaho, Indiana, Iowa, Kansas, Kentucky, Maine, Minnesota, Montana, Nebraska, New Hampshire, North Dakota, Ohio, Pennsylvania, South Dakota, Utah, Vermont, West Virginia, Wisconsin.
+Cluster 4: Florida, North Carolina.
+
+#######--------------------------------------------------------------
+1b:
+USArrests <-read.csv(file.choose(),header=T,stringsAsFactors=TRUE)
+names(USArrests) 
+dim(USArrests) 
+head(USArrests)
+summary(USArrests)
+
+#b) Perform K-means clustering with K=4 on the data set. 
+
+USArrests.labs=USArrests[,1] 
+USArrests.labs
+USArrests.data=USArrests[,2:5] #murder, assault, urban pop, rape
+USArrests.data
+dim(USArrests.data) 
+table(USArrests.labs)
+
+
+set.seed(1)
+km.out1 =kmeans (USArrests.data,4, nstart =1)
+
+km.out1 
+km.out1$cluster
+km.out1$betweenss 
+km.out1$withinss 
+km.out1$tot.withinss 
+km.out1$totss
+
+table(km.out1$cluster,USArrests.labs)
+
+set.seed(2)
+km.out2 =kmeans (USArrests.data,4, nstart =1) 
+km.out2$betweenss
+km.out2$withinss
+km.out2$tot.withinss
+km.out2$totss 
+table(km.out2$cluster,USArrests.labs)
+
+###### -------------------- Part C -------------------- ######
+USArrests <-read.csv(file.choose(),header=T,stringsAsFactors=TRUE)
+names(USArrests) 
+dim(USArrests) 
+head(USArrests)
+summary(USArrests)
+
+#c) In K-means clustering, what is the optimal value of K?
+#The optimal value of K is 4. 
+set.seed(1)
+km.out3 =kmeans (USArrests.data,4, nstart =20)
+km.out3$betweenss
+km.out3$withinss
+km.out3$tot.withinss
+km.out3$totss
+table(km.out3$cluster,USArrests.labs)
+
+USArrests.data2=USArrests[,2:5]
+set.seed(1)
+sd.data=scale(USArrests.data2)
