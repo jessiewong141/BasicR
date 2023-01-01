@@ -1,0 +1,56 @@
+##Shiny dashboard ####
+#Cleaning Data####
+library(shiny)
+SMH<-read.csv('Student Mental health.csv')
+SMH
+names(SMH)[2] <- "Gender" # RENAMING VARIABLES
+names(SMH)[5] <- "Year"
+names(SMH)[6] <- "GPA"
+names(SMH)[9] <- "Anxiety"
+names(SMH)[4] <- "Course"
+names(SMH)[8] <- "Depression"
+names(SMH)[10] <- "Panic.attack"
+names(SMH)[11] <- "Specialist"
+SMH <-SMH[-c(1)] #deleted timestamp due to irrelevancy
+names(SMH)
+
+#shiny(Gender)####
+ui<-fluidPage(
+  titlePanel("SMH by Gender"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("inGender","Select a Gender", choices=SMH$Gender) #selectInput(id,text,choices=)
+    ),
+    mainPanel(
+      tableOutput("SMH")
+    )
+  )
+)
+
+server <- shinyServer(function(input,output){   #input, output from ui 
+  output$SMH <- renderTable({
+   GenderFilter <- subset(SMH,SMH$Gender == input$inGender) #gives categories in mainframe
+  })
+})
+shinyApp(ui=ui,server=server)
+
+#shiny(Courses)####
+#sidebar has Course
+ui<-fluidPage(
+  titlePanel("SMH by Course"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("inCourse","Select a Course", choices=SMH$Course) #selectInput(id,text,choices=)
+    ),
+    mainPanel(
+      tableOutput("SMH")
+    )
+  )
+)
+
+server <- shinyServer(function(input,output){   #input, output from ui 
+  output$SMH <- renderTable({
+    CourseFilter <- subset(SMH,SMH$Course == input$inCourse) #gives categories in mainframe
+  })
+})
+shinyApp(ui=ui,server=server)
